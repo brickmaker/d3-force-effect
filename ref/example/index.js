@@ -44,13 +44,13 @@ const chart = () => {
 
   const simulation = d3.forceSimulation(nodes)
     .force("link", d3.forceLink(links).id(d => d.id))
-    .force("charge", d3.forceManyBody())
-    .force("center", d3.forceCenter(width / 2, height / 2));
+    .force("charge", d3.forceManyBody());
 
   const svg = d3.create("svg")
-    .attr("viewBox", [0, 0, width, height]);
+    .attr("viewBox", [0, 0, width, height])
 
   const link = svg.append("g")
+    .attr("transform", `translate(${width / 2}, ${height / 2})`)
     .attr("stroke", "#999")
     .attr("stroke-opacity", 0.6)
     .selectAll("line")
@@ -59,6 +59,7 @@ const chart = () => {
     .attr("stroke-width", 2);
 
   const node = svg.append("g")
+    .attr("transform", `translate(${width / 2}, ${height / 2})`)
     .attr("stroke", "#fff")
     .attr("stroke-width", 1.5)
     .selectAll("circle")
@@ -70,6 +71,8 @@ const chart = () => {
   // node.append("title")
   // .text(d => d.id);
 
+  console.log(nodes);
+  console.log(links);
   simulation.on("tick", () => {
     link
       .attr("x1", d => d.source.x)
