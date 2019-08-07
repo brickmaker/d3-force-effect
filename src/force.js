@@ -1,12 +1,12 @@
-const INIT_RADIUS = 100;
-const TIME_INTERVAL = 1;
-const DEFALUT_EDGE_LEN = 0;
-const SPRING_K = 1000;
-const REPULSE_K = 200000;
-const CENTRIPETAL_K = 100;
-const D_T = 0.001;
-const MASS = 10;
-const VELOCITY_DECAY = 0.99;
+const INIT_RADIUS = 100; // init range of random position of nodes
+const TIME_INTERVAL = 1; // time interval of tick
+const DEFALUT_EDGE_LEN = 0; // rest length of spring
+const SPRING_K = 1000; // spring stiffness factor
+const REPULSE_K = 200000; // repulse force factor
+const CENTRIPETAL_K = 100; // centripetal force factor
+const D_T = 0.001; // delta time
+const MASS = 10; // mass value of nodes
+const VELOCITY_DECAY = 0.99; // decay of velocity of each iteration
 
 class ForceSimulation {
     constructor(nodes, links, enableWeightLink) {
