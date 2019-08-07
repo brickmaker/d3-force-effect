@@ -29,7 +29,6 @@ class ForceSimulation {
     }
 
     stop() {
-        // TODO: to be implemented
         clearInterval(this.timer);
     }
 
