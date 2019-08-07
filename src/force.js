@@ -23,13 +23,14 @@ class ForceSimulation {
     }
 
     start() {
-        setInterval(() => {
+        this.timer = setInterval(() => {
             this.step();
         }, TIME_INTERVAL);
     }
 
     stop() {
         // TODO: to be implemented
+        clearInterval(this.timer);
     }
 
     step() {
