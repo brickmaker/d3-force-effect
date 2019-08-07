@@ -1,16 +1,19 @@
 const INIT_RADIUS = 100;
-const TIME_INTERVAL = 10;
-const DEFALUT_EDGE_LEN = 100;
-const SPRING_K = 10;
-const D_T = 0.1;
-const MASS = 1;
-const VELOCITY_DECAY = 0.9;
+const TIME_INTERVAL = 1;
+const DEFALUT_EDGE_LEN = 0;
+const SPRING_K = 1000;
+const REPULSE_K = 200000;
+const CENTRIPETAL_K = 100;
+const D_T = 0.001;
+const MASS = 10;
+const VELOCITY_DECAY = 0.99;
 
 class ForceSimulation {
-    constructor(nodes, links) {
+    constructor(nodes, links, enableWeightLink) {
         this.nodes = nodes;
         this.links = links;
         this.tickFunc = () => { };
+        this.hasWeightLink = enableWeightLink;
 
         this._init();
     }
@@ -53,27 +56,97 @@ class ForceSimulation {
         return Math.random() * (y - x) + x;
     }
 
-    _len(link) {
-        return Math.sqrt((link.source.x - link.target.x) ** 2 + (link.source.y - link.target.y) ** 2);
+    _lenTwoNodes(source, target) {
+        return Math.sqrt((source.x - target.x) ** 2 + (source.y - target.y) ** 2);
     }
-    _normal(link) {
-        const len = this._len(link);
+
+    _normalTwoNodes(source, target) {
+        const len = this._lenTwoNodes(source, target);
         return {
-            x: (link.target.x - link.source.x) / len,
-            y: (link.target.y - link.source.y) / len,
+            x: (target.x - source.x) / len,
+            y: (target.y - source.y) / len,
         };
+    }
+
+    _lenLink(link) {
+        return this._lenTwoNodes(link.source, link.target);
+    }
+
+    _normalLink(link) {
+        return this._normalTwoNodes(link.source, link.target);
+    }
+
+    _computeSpring(link, hasWeight = false) {
+        const len = this._lenLink(link);
+        const normal = this._normalLink(link);
+        const f = (len - DEFALUT_EDGE_LEN) * SPRING_K;
+        // const weightFactor = hasWeight ? 1 + Math.log(link.value) : 1;
+        const weightFactor = hasWeight ? link.value : 1;
+        return {
+            x: f * normal.x * weightFactor,
+            y: f * normal.y * weightFactor,
+        }
+    }
+
+    _computeRepulse(center) {
+        const f = {
+            x: 0,
+            y: 0
+        };
+
+        this.nodes.forEach(node => {
+            if (node !== center) {
+                const fv = REPULSE_K * MASS * MASS / this._lenTwoNodes(center, node) ** 2;
+                const normal = this._normalTwoNodes(node, center);
+                f.x += fv * normal.x;
+                f.y += fv * normal.y;
+            }
+        })
+
+        return f;
+    }
+
+    _computeCentripetal(node) {
+        const f = {
+            x: 0,
+            y: 0
+        };
+        const center = { x: 0, y: 0 }; // TODO: default center is zero
+        const fv = CENTRIPETAL_K * this._lenTwoNodes(node, center);
+        const normal = this._normalTwoNodes(node, center);
+        f.x += fv * normal.x;
+        f.y += fv * normal.y;
+        return f;
     }
 
     _computeVelocities() {
         this.links.forEach(link => {
-            const len = this._len(link);
-            const normal = this._normal(link);
-            const f = (len - DEFALUT_EDGE_LEN) * SPRING_K;
+            const springForce = this._computeSpring(link, this.hasWeightLink);
+            const repulseForceSource = this._computeRepulse(link.source);
+            const repulseForceTarget = this._computeRepulse(link.target);
+            const centripetalForceSource = this._computeCentripetal(link.source);
+            const centripetalForceTarget = this._computeCentripetal(link.target);
 
-            link.source.vx += f / MASS * normal.x * D_T;
-            link.source.vy += f / MASS * normal.y * D_T;
-            link.target.vx -= f / MASS * normal.x * D_T;
-            link.target.vy -= f / MASS * normal.y * D_T;
+            const fSource = {
+                x: springForce.x + repulseForceSource.x + centripetalForceSource.x,
+                y: springForce.y + repulseForceSource.y + centripetalForceSource.y,
+            };
+
+            const fTarget = {
+                x: -springForce.x + repulseForceTarget.x + centripetalForceTarget.x,
+                y: -springForce.y + repulseForceTarget.y + centripetalForceTarget.y,
+            };
+
+            // force decay
+            // fSource.x *= VELOCITY_DECAY;
+            // fSource.y *= VELOCITY_DECAY;
+            // fTarget.x *= VELOCITY_DECAY;
+            // fTarget.y *= VELOCITY_DECAY;
+
+            link.source.vx += fSource.x / MASS * D_T;
+            link.source.vy += fSource.y / MASS * D_T;
+            link.target.vx += fTarget.x / MASS * D_T;
+            link.target.vy += fTarget.y / MASS * D_T;
 
             // speed decay
             link.source.vx *= VELOCITY_DECAY;

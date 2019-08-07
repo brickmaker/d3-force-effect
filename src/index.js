@@ -44,7 +44,7 @@ const nodes = miserables.nodes.map(d => Object.create(d));
 const scale = d3.scaleOrdinal(d3.schemeCategory10);
 const color = d => scale(d.group);
 
-const simulation = new ForceSimulation(nodes, links);
+const simulation = new ForceSimulation(nodes, links, true);
 
 const svg = d3.create("svg")
     .attr("viewBox", [0, 0, width, height]);
