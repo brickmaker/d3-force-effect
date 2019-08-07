@@ -28,7 +28,9 @@ class ForceSimulation {
         }, TIME_INTERVAL);
     }
 
-    stop() { }
+    stop() {
+        // TODO: to be implemented
+    }
 
     step() {
         this._computeVelocities();
@@ -80,6 +82,8 @@ class ForceSimulation {
         const len = this._lenLink(link);
         const normal = this._normalLink(link);
         const f = (len - DEFALUT_EDGE_LEN) * SPRING_K;
+
+        // NOTE: weight method, linear or log
         // const weightFactor = hasWeight ? 1 + Math.log(link.value) : 1;
         const weightFactor = hasWeight ? link.value : 1;
         return {
@@ -89,10 +93,7 @@ class ForceSimulation {
     }
 
     _computeRepulse(center) {
-        const f = {
-            x: 0,
-            y: 0
-        };
+        const f = { x: 0, y: 0 };
 
         this.nodes.forEach(node => {
             if (node !== center) {
@@ -107,10 +108,7 @@ class ForceSimulation {
     }
 
     _computeCentripetal(node) {
-        const f = {
-            x: 0,
-            y: 0
-        };
+        const f = { x: 0, y: 0 };
         const center = { x: 0, y: 0 }; // TODO: default center is zero
         const fv = CENTRIPETAL_K * this._lenTwoNodes(node, center);
         const normal = this._normalTwoNodes(node, center);
@@ -131,37 +129,23 @@ class ForceSimulation {
                 x: springForce.x + repulseForceSource.x + centripetalForceSource.x,
                 y: springForce.y + repulseForceSource.y + centripetalForceSource.y,
             };
-
             const fTarget = {
                 x: -springForce.x + repulseForceTarget.x + centripetalForceTarget.x,
                 y: -springForce.y + repulseForceTarget.y + centripetalForceTarget.y,
             };
 
-            // force decay
-            // fSource.x *= VELOCITY_DECAY;
-            // fSource.y *= VELOCITY_DECAY;
-            // fTarget.x *= VELOCITY_DECAY;
-            // fTarget.y *= VELOCITY_DECAY;
-
+            // force to velocity, explicit Euler method
             link.source.vx += fSource.x / MASS * D_T;
             link.source.vy += fSource.y / MASS * D_T;
             link.target.vx += fTarget.x / MASS * D_T;
             link.target.vy += fTarget.y / MASS * D_T;
 
-            // speed decay
+            // NOTE: speed decay, maybe not proper
             link.source.vx *= VELOCITY_DECAY;
             link.source.vy *= VELOCITY_DECAY;
             link.target.vx *= VELOCITY_DECAY;
             link.target.vy *= VELOCITY_DECAY;
         });
-
-        // TODO: only for test
-        /*
-        this.nodes.forEach(node => {
-            node.vx = 1.;
-            node.vy = 1.;
-        });
-        */
     }
 
     _computePositions() {
