@@ -48,7 +48,9 @@ const color = d => scale(d.group);
 const simulation = new ForceSimulation(nodes, links, true);
 
 const svg = d3.create("svg")
-    .attr("viewBox", [0, 0, width, height]);
+    .attr("width", width)
+    .attr("height",height)
+    // .attr("viewBox", [0, 0, width, height]);
 
 const link = svg.append("g")
     .attr("transform", `translate(${width / 2}, ${height / 2})`)
