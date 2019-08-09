@@ -33,9 +33,11 @@ class ForceSimulation {
     }
 
     step() {
+        // console.time();
         this._computeVelocities();
         this._computePositions();
         this.tickFunc();
+        // console.timeEnd();
     }
 
     _init() {
@@ -118,12 +120,28 @@ class ForceSimulation {
     }
 
     _computeVelocities() {
+        let repulseForceList = {}
+        this.nodes.forEach( node => {
+            repulseForceList[node.id] = this._computeRepulse(node)
+        });
+
+        let centripetalForceList = {}
+        this.nodes.forEach( node => {
+            centripetalForceList[node.id] = this._computeCentripetal(node)
+        });
+
         this.links.forEach(link => {
             const springForce = this._computeSpring(link, this.hasWeightLink);
-            const repulseForceSource = this._computeRepulse(link.source);
-            const repulseForceTarget = this._computeRepulse(link.target);
-            const centripetalForceSource = this._computeCentripetal(link.source);
-            const centripetalForceTarget = this._computeCentripetal(link.target);
+            // const repulseForceSource = this._computeRepulse(link.source);
+            // const repulseForceTarget = this._computeRepulse(link.target);
+            // const centripetalForceSource = this._computeCentripetal(link.source);
+            // const centripetalForceTarget = this._computeCentripetal(link.target);
+            const repulseForceSource = repulseForceList[link.source.id];
+            const repulseForceTarget = repulseForceList[link.target.id];
+            const centripetalForceSource = centripetalForceList[link.source.id];
+            const centripetalForceTarget = centripetalForceList[link.target.id];
+            
+            // console.log(centripetalForceTarget)
 
             const fSource = {
                 x: springForce.x + repulseForceSource.x + centripetalForceSource.x,
